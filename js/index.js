@@ -8,6 +8,8 @@ const tmbApi = "https://api.tmb.cat/v1/planner/plan";
 const appId = "0031bdb3"; // Mete aquí el app_id de TMB
 const appKey = "1eef12f633798f1b3f0427e9c6e39525"; // Mete aquí el app_key de TMB
 mapboxgl.accessToken = mapboxToken;
+const mapa =
+  "https://www.google.com/maps?z=19&t=m&q=loc:COORDENADA1+COORDENADA2";
 
 // LLama a esta función para generar el pequeño mapa que sale en cada paso
 // Le tienes que pasar un array con las dos coordenadas y el elemento HTML donde tiene que generar el mapa
@@ -31,28 +33,42 @@ const coordenadas = {
     longitud: 0,
   },
 };
+let {
+  desde: { latitud: latitudOrigen, longitud: longitudOrigen },
+  hasta: { latitud: latitudDestino, longitud: longitudDestino },
+} = coordenadas;
 
-// Pruebas MapBox
-const places = "Barcelona.json";
-fetch(`${geocodingApi}${places}?access_token=${mapboxToken}`)
+// Recogemos las coordenadas de origen y destino con Mapbox
+const placesOrigen = "Sagrada familia"; // String con la dirección de la que queremos las coordenadas (máx 20 words). Lo recogeremos de HTML
+const placesDestino = "catalunya barcelona";
+// Datos de origen
+fetch(`${geocodingApi}${placesOrigen}.json?access_token=${mapboxToken}`)
   .then((response) => response.json())
   .then((datos) => {
-    const coordenadas = datos.features[0].geometry.coordinates;
-    console.log(coordenadas);
-    return coordenadas;
+    const [longitud, latitud] = datos.features[0].geometry.coordinates; // Array de coordenadas [latitud,longitud]
+    latitudOrigen = latitud;
+    longitudOrigen = longitud;
+
+    // Datos de destino
+    fetch(`${geocodingApi}${placesDestino}.json?access_token=${mapboxToken}`)
+      .then((response) => response.json())
+      .then((datos) => {
+        const [longitud, latitud] = datos.features[0].geometry.coordinates; // Array de coordenadas [latitud,longitud]
+        latitudDestino = latitud;
+        longitudDestino = longitud;
+
+        // Mandamos las coordenadas a la API de TMB
+        const fromPlace = `${latitudOrigen},${longitudOrigen}`; // Coordenadas de AM de Barcelona
+        const toPlace = `${latitudDestino},${longitudDestino}`;
+        fetch(
+          `${tmbApi}?app_id=${appId}&app_key=${appKey}&fromPlace=${fromPlace}&toPlace=${toPlace}`
+        )
+          .then((response) => response.json())
+          .then((datos) => {
+            const itinerarios = datos.plan.itineraries;
+            console.log(itinerarios);
+          });
+      });
   });
 
-// Pruebas TMB
-const fromPlace = "41.3755204,2.1498870"; // Coordenadas de Barcelona
-const toPlace = "41.3789985,2.1377242";
-// Datos no required
-const date = "06-06-2021";
-const time = "14:00";
-const arriveBy = "false"; // false: date y time tipo salida; true: date y time tipo llegada
-const mode = "WALK";
-/* fetch(
-  `${tmbApi}?app_id=${appId}&app_key=${appKey}&fromPlace=${fromPlace}&toPlace=${toPlace}&date=${date}&time=${time}&arriveBy=${arriveBy}&mode=${mode}`
-); */
-fetch(
-  `${tmbApi}?app_id=${appId}&app_key=${appKey}&fromPlace=${fromPlace}&toPlace=${toPlace}`
-);
+// Integración API Mapbox (obtenemos coordenadas) + API TMB (pasos a seguir para la ruta)
