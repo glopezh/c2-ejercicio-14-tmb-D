@@ -1,5 +1,7 @@
 /* global mapboxgl */
 
+import { * as dom } from "./dom.js";
+
 // Datos para las APIs
 const geocodingApi = "https://api.mapbox.com/geocoding/v5/mapbox.places/";
 const mapboxToken =
