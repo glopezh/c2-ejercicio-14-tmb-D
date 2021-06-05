@@ -1,6 +1,6 @@
 /* global mapboxgl */
 
-/* import { * as dom } from "./dom.js"; */
+import { direccionDesde, direccionHasta } from "./dom.js";
 
 // Datos para las APIs
 const geocodingApi = "https://api.mapbox.com/geocoding/v5/mapbox.places/";
@@ -40,31 +40,32 @@ let {
   hasta: { latitud: latitudDestino, longitud: longitudDestino },
 } = coordenadas;
 
-// Recogemos las coordenadas de origen y destino con Mapbox
-const placesOrigen = "Sagrada familia"; // String con la dirección de la que queremos las coordenadas (máx 20 words). Lo recogeremos de HTML
-const placesDestino = "sants barcelona";
-const listaPasos = document.querySelector(".pasos");
+// Cuando hacemos submit al formulario se mandan todos los datos
+const formulario = document.querySelector(".form-coordenadas");
+formulario.addEventListener("submit", (e) => {
+  e.preventDefault();
 
-// Datos de origen
-fetch(`${geocodingApi}${placesOrigen}.json?access_token=${mapboxToken}`)
-  .then((response) => response.json())
-  .then((datos) => {
-    const [longitud, latitud] = datos.features[0].geometry.coordinates; // Array de coordenadas [latitud,longitud]
-    latitudOrigen = latitud;
-    longitudOrigen = longitud;
+  // Recogemos las coordenadas de origen y destino con Mapbox
+  const placesOrigen = "sants"; // String con la dirección de la que queremos las coordenadas (máx 20 words). Lo recogeremos de HTML
+  const placesDestino = "sagrada familia";
+  const listaPasos = document.querySelector(".pasos");
 
-    // Datos de destino
-    fetch(`${geocodingApi}${placesDestino}.json?access_token=${mapboxToken}`)
-      .then((response) => response.json())
-      .then((datos) => {
-        const [longitud, latitud] = datos.features[0].geometry.coordinates; // Array de coordenadas [latitud,longitud]
-        latitudDestino = latitud;
-        longitudDestino = longitud;
+  // Datos de origen
+  fetch(`${geocodingApi}${placesOrigen}.json?access_token=${mapboxToken}`)
+    .then((response) => response.json())
+    .then((datos) => {
+      const [longitud, latitud] = datos.features[0].geometry.coordinates; // Array de coordenadas [latitud,longitud]
+      latitudOrigen = latitud;
+      longitudOrigen = longitud;
 
-        // Cuando hacemos submit al formulario se mandan todos los datos
-        const formulario = document.querySelector(".form-coordenadas");
-        formulario.addEventListener("submit", (e) => {
-          e.preventDefault();
+      // Datos de destino
+      fetch(`${geocodingApi}${placesDestino}.json?access_token=${mapboxToken}`)
+        .then((response) => response.json())
+        .then((datos) => {
+          const [longitud, latitud] = datos.features[0].geometry.coordinates; // Array de coordenadas [latitud,longitud]
+          latitudDestino = latitud;
+          longitudDestino = longitud;
+
           // Mandamos las coordenadas a la API de TMB
           const fromPlace = `${latitudOrigen},${longitudOrigen}`; // Coordenadas de AM de Barcelona
           const toPlace = `${latitudDestino},${longitudDestino}`;
@@ -115,5 +116,5 @@ fetch(`${geocodingApi}${placesOrigen}.json?access_token=${mapboxToken}`)
               }
             });
         });
-      });
-  });
+    });
+});
