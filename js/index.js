@@ -24,31 +24,34 @@ const generaMapa = (coordenadas, mapa) => {
   });
 };
 
-// Coordenadas que se mandarán a la API de TMB. Tienes que alimentar este objeto a partir de las coordenadas que te dé la API de Mapbox
-const coordenadas = {
-  desde: {
-    latitud: 0,
-    longitud: 0,
-  },
-  hasta: {
-    latitud: 0,
-    longitud: 0,
-  },
-};
-let {
-  desde: { latitud: latitudOrigen, longitud: longitudOrigen },
-  hasta: { latitud: latitudDestino, longitud: longitudDestino },
-} = coordenadas;
-
 // Cuando hacemos submit al formulario se mandan todos los datos
 const formulario = document.querySelector(".form-coordenadas");
 formulario.addEventListener("submit", (e) => {
   e.preventDefault();
 
+  // Coordenadas que se mandarán a la API de TMB. Tienes que alimentar este objeto a partir de las coordenadas que te dé la API de Mapbox
+  const coordenadas = {
+    desde: {
+      latitud: 0,
+      longitud: 0,
+    },
+    hasta: {
+      latitud: 0,
+      longitud: 0,
+    },
+  };
+  let {
+    desde: { latitud: latitudOrigen, longitud: longitudOrigen },
+    hasta: { latitud: latitudDestino, longitud: longitudDestino },
+  } = coordenadas;
+
   // Recogemos las coordenadas de origen y destino con Mapbox
-  const placesOrigen = "sants"; // String con la dirección de la que queremos las coordenadas (máx 20 words). Lo recogeremos de HTML
-  const placesDestino = "sagrada familia";
-  const listaPasos = document.querySelector(".pasos");
+  const placesOrigen = formulario.querySelector(
+    ".de-direccion-definitiva.direccion-definitiva"
+  ).value; // String con la dirección de la que queremos las coordenadas (máx 20 words). Lo recogeremos de HTML
+  const placesDestino = formulario.querySelector(
+    ".a-direccion-definitiva.direccion-definitiva"
+  ).value;
 
   // Datos de origen
   fetch(`${geocodingApi}${placesOrigen}.json?access_token=${mapboxToken}`)
@@ -74,6 +77,8 @@ formulario.addEventListener("submit", (e) => {
           )
             .then((response) => response.json())
             .then((datos) => {
+              // Alimentamos el HTML con los datos de la API de TMB
+              const listaPasos = document.querySelector(".pasos");
               const itinerario = datos.plan.itineraries[0];
               const pasos = itinerario.legs;
               let i = 1;
