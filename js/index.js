@@ -69,10 +69,9 @@ const nombreDireccionDestino =
 formulario.addEventListener("keydown", (e) => {
   // Esperamos para mandar los datos a Mapbox
   setTimeout(() => {
-    if (deDireccion.value !== "" && aDireccion.value !== "") {
-      // Recogemos las coordenadas de origen y destino con Mapbox
+    if (deDireccion.value !== "") {
+      // Recogemos las coordenadas de origen con Mapbox
       const placesOrigen = deDireccion.value;
-      const placesDestino = aDireccion.value;
 
       // Datos de origen
       fetch(`${geocodingApi}${placesOrigen}.json?access_token=${mapboxToken}`)
@@ -87,6 +86,15 @@ formulario.addEventListener("keydown", (e) => {
           resumenOrigen = datos.features[0].text;
           nombreDireccionOrigen.classList.add("direccion-definitiva", "on");
         });
+    }
+  }, 500);
+});
+
+formulario.addEventListener("keydown", (e) => {
+  setTimeout(() => {
+    if (aDireccion.value !== "") {
+      // Recogemos las coordenadas de origen con Mapbox
+      const placesDestino = aDireccion.value;
 
       // Datos de destino
       fetch(`${geocodingApi}${placesDestino}.json?access_token=${mapboxToken}`)
