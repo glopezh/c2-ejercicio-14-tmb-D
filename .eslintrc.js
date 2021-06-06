@@ -24,5 +24,7 @@ module.exports = {
     "no-param-reassign": "off",
     "no-restricted-globals": "off",
     "guard-for-in": "off",
+    "import/prefer-default-export": "off",
+    "import/extensions": "off",
   },
 };

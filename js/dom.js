@@ -20,7 +20,6 @@ inputDireccion(
   false
 );
 inputDireccion(formulario, "#a-mi-ubicacion", ".a-direccion-definitiva", false);
-
 // Recogemos string del input
 const direccionOrigen = formulario.querySelector(
   ".de-direccion-definitiva.direccion-definitiva"
@@ -44,7 +43,6 @@ export const direccionDesde = direcciones(direccionOrigen); // No funciona. No p
 export const direccionHasta = direcciones(direccionDestino);
 console.log(direccionDesde); // Undefined porque se ejecuta al principio y ya está
 
-// Al pulsar usar mi ubicación tenemos que obtener la localización del navegador en un string de coordenadas
 const miUbicacion = (latitud, longitud) => {
   navigator.geolocation.getCurrentPosition((pos) => {
     latitud = pos.coords.latitude;
