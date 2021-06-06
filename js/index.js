@@ -1,6 +1,6 @@
 /* global mapboxgl */
 
-import { direccionDesde, direccionHasta } from "./dom.js";
+import { direcciones } from "./dom.js";
 
 // Datos para las APIs
 const geocodingApi = "https://api.mapbox.com/geocoding/v5/mapbox.places/";
@@ -24,102 +24,120 @@ const generaMapa = (coordenadas, mapa) => {
   });
 };
 
-// Cuando hacemos submit al formulario se mandan todos los datos
+// Coordenadas que se mandarán a la API de TMB. Tienes que alimentar este objeto a partir de las coordenadas que te dé la API de Mapbox
+const coordenadas = {
+  desde: {
+    latitud: 0,
+    longitud: 0,
+  },
+  hasta: {
+    latitud: 0,
+    longitud: 0,
+  },
+};
+let {
+  desde: { latitud: latitudOrigen, longitud: longitudOrigen },
+  hasta: { latitud: latitudDestino, longitud: longitudDestino },
+} = coordenadas;
+
 const formulario = document.querySelector(".form-coordenadas");
-formulario.addEventListener("submit", (e) => {
-  e.preventDefault();
+const vaciarPasos = () => {
+  for (const paso of document.querySelectorAll(".paso")) {
+    paso.remove();
+    console.log("a");
+  }
+};
 
-  // Coordenadas que se mandarán a la API de TMB. Tienes que alimentar este objeto a partir de las coordenadas que te dé la API de Mapbox
-  const coordenadas = {
-    desde: {
-      latitud: 0,
-      longitud: 0,
-    },
-    hasta: {
-      latitud: 0,
-      longitud: 0,
-    },
-  };
-  let {
-    desde: { latitud: latitudOrigen, longitud: longitudOrigen },
-    hasta: { latitud: latitudDestino, longitud: longitudDestino },
-  } = coordenadas;
-
+// Cuando tecleamos se mandan los datos a Mapbox
+formulario.addEventListener("keydown", (e) => {
   // Recogemos las coordenadas de origen y destino con Mapbox
-  const placesOrigen = formulario.querySelector(
+  const deDireccion = formulario.querySelector(
     ".de-direccion-definitiva.direccion-definitiva"
-  ).value; // String con la dirección de la que queremos las coordenadas (máx 20 words). Lo recogeremos de HTML
-  const placesDestino = formulario.querySelector(
+  ); // String con la dirección de la que queremos las coordenadas (máx 20 words). Lo recogeremos de HTML
+  const aDireccion = formulario.querySelector(
     ".a-direccion-definitiva.direccion-definitiva"
-  ).value;
+  );
 
-  // Datos de origen
-  fetch(`${geocodingApi}${placesOrigen}.json?access_token=${mapboxToken}`)
-    .then((response) => response.json())
-    .then((datos) => {
-      const [longitud, latitud] = datos.features[0].geometry.coordinates; // Array de coordenadas [latitud,longitud]
-      latitudOrigen = latitud;
-      longitudOrigen = longitud;
+  // Esperamos para mandar los datos a Mapbox
+  setTimeout(() => {
+    if (deDireccion.value !== "" && aDireccion.value !== "") {
+      const placesOrigen = deDireccion.value;
+      const placesDestino = aDireccion.value;
 
-      // Datos de destino
-      fetch(`${geocodingApi}${placesDestino}.json?access_token=${mapboxToken}`)
+      // Datos de origen
+      console.log(placesDestino);
+      fetch(`${geocodingApi}${placesOrigen}.json?access_token=${mapboxToken}`)
         .then((response) => response.json())
         .then((datos) => {
           const [longitud, latitud] = datos.features[0].geometry.coordinates; // Array de coordenadas [latitud,longitud]
-          latitudDestino = latitud;
-          longitudDestino = longitud;
+          latitudOrigen = latitud;
+          longitudOrigen = longitud;
 
-          // Mandamos las coordenadas a la API de TMB
-          const fromPlace = `${latitudOrigen},${longitudOrigen}`; // Coordenadas de AM de Barcelona
-          const toPlace = `${latitudDestino},${longitudDestino}`;
+          // Datos de destino
           fetch(
-            `${tmbApi}?app_id=${appId}&app_key=${appKey}&fromPlace=${fromPlace}&toPlace=${toPlace}`
+            `${geocodingApi}${placesDestino}.json?access_token=${mapboxToken}`
           )
             .then((response) => response.json())
             .then((datos) => {
-              // Alimentamos el HTML con los datos de la API de TMB
-              const listaPasos = document.querySelector(".pasos");
-              const itinerario = datos.plan.itineraries[0];
-              const pasos = itinerario.legs;
-              let i = 1;
-              for (const {
-                from,
-                to,
-                distance,
-                duration,
-                startTime,
-                endTime,
-              } of pasos) {
-                const nuevoPaso = document
-                  .querySelector(".paso.paso-dummy")
-                  .cloneNode(true);
-                nuevoPaso.classList.remove("paso-dummy");
-                const pasoEncabezado =
-                  nuevoPaso.querySelector(".paso-encabezado");
-                const pasoNumero = pasoEncabezado.querySelector(".paso-numero");
-                pasoNumero.textContent = i;
-                const pasoFrom = pasoEncabezado.querySelector(".paso-from");
-                pasoFrom.textContent = from.name;
-                const pasoTo = pasoEncabezado.querySelector(".paso-to");
-                pasoTo.textContent = to.name;
-                const linkMapa = pasoEncabezado.querySelector(".paso-mapa");
-                linkMapa.href = mapa(to.lat, to.lon);
-                const pasoHora = nuevoPaso.querySelector(".paso-hora .dato");
-                pasoHora.textContent = startTime;
-                const pasoDistancia = nuevoPaso.querySelector(
-                  ".paso-distancia .dato"
-                );
-                pasoDistancia.textContent = distance;
-                const pasoDuracion = nuevoPaso.querySelector(
-                  ".paso-duracion .dato"
-                );
-                pasoDistancia.textContent = duration;
-                const mapaPaso = nuevoPaso.querySelector(".mapa");
-                generaMapa([to.lat, to.lon], mapaPaso);
-                listaPasos.append(nuevoPaso);
-                i++;
-              }
+              const [longitud, latitud] =
+                datos.features[0].geometry.coordinates; // Array de coordenadas [latitud,longitud]
+              latitudDestino = latitud;
+              longitudDestino = longitud;
             });
         });
+    }
+  }, 500);
+});
+
+// Cuando hacemos submit al formulario se mandan todos los datos
+formulario.addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  // Mandamos las coordenadas a la API de TMB
+  const fromPlace = `${latitudOrigen},${longitudOrigen}`; // Coordenadas de AM de Barcelona
+  const toPlace = `${latitudDestino},${longitudDestino}`;
+  fetch(
+    `${tmbApi}?app_id=${appId}&app_key=${appKey}&fromPlace=${fromPlace}&toPlace=${toPlace}`
+  )
+    .then((response) => response.json())
+    .then((datos) => {
+      // Limpiamos la lista de pasos
+      vaciarPasos();
+      // Alimentamos el HTML con los datos de la API de TMB
+      const listaPasos = document.querySelector(".pasos");
+      const itinerario = datos.plan.itineraries[0];
+      const pasos = itinerario.legs;
+      let i = 1;
+      for (const {
+        from,
+        to,
+        distance,
+        duration,
+        startTime,
+        endTime,
+      } of pasos) {
+        const nuevoPaso = document.querySelector(".paso-dummy").cloneNode(true);
+        nuevoPaso.classList.remove("paso-dummy");
+        nuevoPaso.classList.add("paso");
+        const pasoEncabezado = nuevoPaso.querySelector(".paso-encabezado");
+        const pasoNumero = pasoEncabezado.querySelector(".paso-numero");
+        pasoNumero.textContent = i;
+        const pasoFrom = pasoEncabezado.querySelector(".paso-from");
+        pasoFrom.textContent = from.name;
+        const pasoTo = pasoEncabezado.querySelector(".paso-to");
+        pasoTo.textContent = to.name;
+        const linkMapa = pasoEncabezado.querySelector(".paso-mapa");
+        linkMapa.href = mapa(to.lat, to.lon);
+        const pasoHora = nuevoPaso.querySelector(".paso-hora .dato");
+        pasoHora.textContent = startTime;
+        const pasoDistancia = nuevoPaso.querySelector(".paso-distancia .dato");
+        pasoDistancia.textContent = distance;
+        const pasoDuracion = nuevoPaso.querySelector(".paso-duracion .dato");
+        pasoDistancia.textContent = duration;
+        const mapaPaso = nuevoPaso.querySelector(".mapa");
+        generaMapa([to.lat, to.lon], mapaPaso);
+        listaPasos.append(nuevoPaso);
+        i++;
+      }
     });
 });
