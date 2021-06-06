@@ -40,6 +40,9 @@ let {
   hasta: { latitud: latitudDestino, longitud: longitudDestino },
 } = coordenadas;
 
+const resumenDirecciones = { resumenOrigen: "", resumenDestino: "" };
+let { resumenOrigen, resumenDestino } = resumenDirecciones;
+
 // Función auxiliar para vaciar lista de pasos
 const vaciarPasos = () => {
   for (const paso of document.querySelectorAll(".paso")) {
@@ -81,6 +84,7 @@ formulario.addEventListener("keydown", (e) => {
           longitudOrigen = longitud;
           // Escribimos la dirección definitiva que devuelve Mapbox
           nombreDireccionOrigen.textContent = datos.features[0].place_name;
+          resumenOrigen = datos.features[0].text;
           nombreDireccionOrigen.classList.add("direccion-definitiva", "on");
         });
 
@@ -94,6 +98,7 @@ formulario.addEventListener("keydown", (e) => {
           longitudDestino = longitud;
           // Escribimos la dirección definitiva que devuelve Mapbox
           nombreDireccionDestino.textContent = datos.features[0].place_name;
+          resumenDestino = datos.features[0].text;
           nombreDireccionDestino.classList.add("direccion-definitiva", "on");
         });
     }
@@ -126,6 +131,7 @@ formulario.addEventListener("submit", (e) => {
         duration,
         startTime,
         endTime,
+        mode,
       } of pasos) {
         const nuevoPaso = document.querySelector(".paso-dummy").cloneNode(true);
         nuevoPaso.classList.remove("paso-dummy");
@@ -134,9 +140,17 @@ formulario.addEventListener("submit", (e) => {
         const pasoNumero = pasoEncabezado.querySelector(".paso-numero");
         pasoNumero.textContent = i;
         const pasoFrom = pasoEncabezado.querySelector(".paso-from");
-        pasoFrom.textContent = from.name;
+        if (i === 1) {
+          pasoFrom.textContent = resumenOrigen;
+        } else {
+          pasoFrom.textContent = from.name;
+        }
         const pasoTo = pasoEncabezado.querySelector(".paso-to");
-        pasoTo.textContent = to.name;
+        if (i === pasos.length) {
+          pasoTo.textContent = resumenDestino;
+        } else {
+          pasoTo.textContent = to.name;
+        }
         const linkMapa = pasoEncabezado.querySelector(".paso-mapa");
         linkMapa.href = mapa(to.lat, to.lon);
         const pasoHora = nuevoPaso.querySelector(".paso-hora .dato");
@@ -144,9 +158,16 @@ formulario.addEventListener("submit", (e) => {
         const pasoDistancia = nuevoPaso.querySelector(".paso-distancia .dato");
         pasoDistancia.textContent = distance;
         const pasoDuracion = nuevoPaso.querySelector(".paso-duracion .dato");
-        pasoDistancia.textContent = duration;
+        pasoDuracion.textContent = duration;
         const mapaPaso = nuevoPaso.querySelector(".mapa");
         generaMapa([to.lat, to.lon], mapaPaso);
+        if (mode.toUpperCase() === "WALK") {
+          nuevoPaso.classList.add("walk");
+        } else if (mode.toUpperCase() === "BUS") {
+          nuevoPaso.classList.add("bus");
+        } else if (mode.toUpperCase() === "SUBWAY") {
+          nuevoPaso.classList.add("subway");
+        }
         listaPasos.append(nuevoPaso);
         i++;
       }
