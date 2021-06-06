@@ -1,6 +1,6 @@
 /* global mapboxgl */
 
-import { direcciones } from "./dom.js";
+import * as dom from "./dom.js";
 
 // Datos para las APIs
 const geocodingApi = "https://api.mapbox.com/geocoding/v5/mapbox.places/";
@@ -40,7 +40,7 @@ let {
   hasta: { latitud: latitudDestino, longitud: longitudDestino },
 } = coordenadas;
 
-const formulario = document.querySelector(".form-coordenadas");
+// Función auxiliar para vaciar lista de pasos
 const vaciarPasos = () => {
   for (const paso of document.querySelectorAll(".paso")) {
     paso.remove();
@@ -48,42 +48,53 @@ const vaciarPasos = () => {
   }
 };
 
+// Elementos del DOM
+const formulario = document.querySelector(".form-coordenadas");
+const deDireccion = formulario.querySelector(
+  ".de-direccion-definitiva.direccion-definitiva"
+); // String con la dirección de la que queremos las coordenadas
+const aDireccion = formulario.querySelector(
+  ".a-direccion-definitiva.direccion-definitiva"
+);
+const nodosCoordenadas = formulario.querySelectorAll(".coordenadas");
+const nombreDireccionOrigen =
+  nodosCoordenadas[0].querySelector(".nombre-lugar");
+const nombreDireccionDestino =
+  nodosCoordenadas[1].querySelector(".nombre-lugar");
+
 // Cuando tecleamos se mandan los datos a Mapbox
 formulario.addEventListener("keydown", (e) => {
-  // Recogemos las coordenadas de origen y destino con Mapbox
-  const deDireccion = formulario.querySelector(
-    ".de-direccion-definitiva.direccion-definitiva"
-  ); // String con la dirección de la que queremos las coordenadas (máx 20 words). Lo recogeremos de HTML
-  const aDireccion = formulario.querySelector(
-    ".a-direccion-definitiva.direccion-definitiva"
-  );
-
   // Esperamos para mandar los datos a Mapbox
   setTimeout(() => {
     if (deDireccion.value !== "" && aDireccion.value !== "") {
+      // Recogemos las coordenadas de origen y destino con Mapbox
       const placesOrigen = deDireccion.value;
       const placesDestino = aDireccion.value;
 
       // Datos de origen
-      console.log(placesDestino);
       fetch(`${geocodingApi}${placesOrigen}.json?access_token=${mapboxToken}`)
         .then((response) => response.json())
         .then((datos) => {
+          nombreDireccionOrigen.textContent = "";
           const [longitud, latitud] = datos.features[0].geometry.coordinates; // Array de coordenadas [latitud,longitud]
           latitudOrigen = latitud;
           longitudOrigen = longitud;
+          // Escribimos la dirección definitiva que devuelve Mapbox
+          nombreDireccionOrigen.textContent = datos.features[0].place_name;
+          nombreDireccionOrigen.classList.add("direccion-definitiva", "on");
+        });
 
-          // Datos de destino
-          fetch(
-            `${geocodingApi}${placesDestino}.json?access_token=${mapboxToken}`
-          )
-            .then((response) => response.json())
-            .then((datos) => {
-              const [longitud, latitud] =
-                datos.features[0].geometry.coordinates; // Array de coordenadas [latitud,longitud]
-              latitudDestino = latitud;
-              longitudDestino = longitud;
-            });
+      // Datos de destino
+      fetch(`${geocodingApi}${placesDestino}.json?access_token=${mapboxToken}`)
+        .then((response) => response.json())
+        .then((datos) => {
+          nombreDireccionDestino.textContent = "";
+          const [longitud, latitud] = datos.features[0].geometry.coordinates; // Array de coordenadas [latitud,longitud]
+          latitudDestino = latitud;
+          longitudDestino = longitud;
+          // Escribimos la dirección definitiva que devuelve Mapbox
+          nombreDireccionDestino.textContent = datos.features[0].place_name;
+          nombreDireccionDestino.classList.add("direccion-definitiva", "on");
         });
     }
   }, 500);

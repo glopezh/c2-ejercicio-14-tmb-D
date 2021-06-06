@@ -1,43 +1,37 @@
 // Al pulsar introducir dirección tiene que aparecer el input
 const formulario = document.querySelector(".form-coordenadas");
 
-const inputDireccion = (nodo, boton, input, boolean) => {
+const inputDireccion = (nodo, boton, input, addRemove, origenDestino) => {
   nodo.querySelector(boton).addEventListener("click", () => {
     const clase = nodo.querySelector(`${input}.direccion-definitiva`).classList;
-    if (boolean) {
+    if (addRemove === "add") {
       clase.add("on");
-    } else {
+    } else if (addRemove === "remove") {
       clase.remove("on");
+      const nodosCoordenadas = nodo.querySelectorAll(".coordenadas");
+      if (origenDestino === "origen") {
+        nodosCoordenadas[0].querySelector(".nombre-lugar").textContent = "";
+      } else if (origenDestino === "destino") {
+        nodosCoordenadas[1].querySelector(".nombre-lugar").textContent = "";
+      }
     }
   });
 };
-inputDireccion(formulario, "#de-direccion", ".de-direccion-definitiva", true);
-inputDireccion(formulario, "#a-direccion", ".a-direccion-definitiva", true);
+inputDireccion(formulario, "#de-direccion", ".de-direccion-definitiva", "add");
+inputDireccion(formulario, "#a-direccion", ".a-direccion-definitiva", "add");
 inputDireccion(
   formulario,
   "#de-mi-ubicacion",
   ".de-direccion-definitiva",
-  false
+  "remove",
+  "origen"
 );
-inputDireccion(formulario, "#a-mi-ubicacion", ".a-direccion-definitiva", false);
-
-// Recogemos string del input
-const direccionOrigen = formulario.querySelector(
-  ".de-direccion-definitiva.direccion-definitiva"
+inputDireccion(
+  formulario,
+  "#a-mi-ubicacion",
+  ".a-direccion-definitiva",
+  "remove",
+  "destino"
 );
-const direccionDestino = formulario.querySelector(
-  ".a-direccion-definitiva.direccion-definitiva"
-);
-export const direcciones = (nodo) => {
-  nodo.addEventListener("keydown", (e) => {
-    setTimeout(() => {
-      if (nodo.value !== "") {
-        const direccion = e.target.value;
-        console.log(direccion);
-        return direccion; // Este es el string que tenemos que exportar
-      }
-    }, 500);
-  });
-};
 
 // Al pulsar usar mi ubicación tenemos que obtener la localización del navegador en un string de coordenadas
