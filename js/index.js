@@ -122,4 +122,6 @@ formulario.addEventListener("submit", (e) => {
             });
         });
     });
+
 });
+
