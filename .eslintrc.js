@@ -8,6 +8,7 @@ module.exports = {
     ecmaVersion: 12,
   },
   rules: {
+    parser: "babel-eslint",
     "no-shadow": "off",
     "no-console": "off",
     "arrow-parens": "off",
